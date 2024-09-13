@@ -1,0 +1,24 @@
+{
+  "name": "quickchat-back",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon index"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/arup-work/QuickChat-Back.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/arup-work/QuickChat-Back/issues"
+  },
+  "homepage": "https://github.com/arup-work/QuickChat-Back#readme",
+  "dependencies": {
+    "express": "^4.21.0"
+  }
+}
