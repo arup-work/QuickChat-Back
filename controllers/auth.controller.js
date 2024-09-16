@@ -24,14 +24,37 @@ export default class AuthController {
 
     static async login(req, res) {
         try {
-            const {email, password} = req.body;
+            const { email, password } = req.body;
             const result = await AuthService.login(email, password);
             return res.status(200).json({
                 message: "Login successful",
                 user: result,
                 status: 200
             })
+
+        } catch (error) {
+            return res.status(401).json({
+                message: error.message,
+                status: 401
+            })
+        }
+    }
+
+    static async verifyEmail(req, res) {
+        try {
+            const { token } = req.params;
+            if (!token) {
+                return res.status(404).json({
+                    message: 'Token is required!',
+                    status: 404
+                });
+            }
             
+            const user = await AuthService.verifyEmail(token);
+            return res.status(200).json({
+                message: 'Email verified successfully',
+                status: 200
+            });
         } catch (error) {
             return res.status(401).json({
                 message: error.message,

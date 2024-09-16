@@ -15,13 +15,17 @@ const UserSchema = new mongoose.Schema({
         required: true
     },
     // For email verification
+    isVerifiedEmail: {
+        type: Boolean,
+        default: false
+    },
     verificationToken: {
         type: String
     },
     verificationTokenExpire: {
         type: Date
     },
-}, {timestamps: true})
+}, { timestamps: true })
 
 // Create a model
 const User = mongoose.model('User', UserSchema);

@@ -31,7 +31,7 @@ export default class AuthService {
             user.verificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
             user.verificationTokenExpire = Date.now() + 3600000; // 1 hour
             await user.save();
-
+            
             // Send verification mail
             const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
 
@@ -66,9 +66,9 @@ export default class AuthService {
             }
 
             // Check user verified email or not
-            // if (!userDetails.isVerifiedEmail) {
-            //     throw new Error("Email is not verified. Please check your email!");
-            // }
+            if (!userDetails.isVerifiedEmail) {
+                throw new Error("Email is not verified. Please check your email!");
+            }
 
             // Exclude the password field from the response
             const { id, name, email } = userDetails;
@@ -80,6 +80,32 @@ export default class AuthService {
             }, process.env.ACCESS_TOKEN_SECRET_KEY);
 
             return { id, name, email, token };
+        } catch (error) {
+            throw new Error(error.message);
+        }
+    }
+
+    static async verifyEmail(token) {
+        try {
+            const hashedToken = crypto.createHash('sha256').update(token).digest("hex");
+
+            const user = await User.findOne({
+                verificationToken: hashedToken,
+                verificationTokenExpire: { $gt: Date.now() }
+            });
+            console.log(token);
+            
+
+            if (!user) {
+                throw new Error("Token is invalid or expired!");
+            }
+
+            user.isVerifiedEmail = true;
+            user.verificationToken = undefined;
+            user.verificationTokenExpire = undefined;
+            await user.save();
+
+            return user;
         } catch (error) {
             throw new Error(error.message);
         }

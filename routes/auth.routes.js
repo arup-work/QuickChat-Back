@@ -20,5 +20,11 @@ authRoute.post(
 
 )
 
+// Verify email
+authRoute.get(
+    '/verify-email/:token',
+    AuthController.verifyEmail
+)
+
 
 export default authRoute;
