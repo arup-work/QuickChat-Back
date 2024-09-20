@@ -66,9 +66,9 @@ export default class AuthService {
             }
 
             // Check user verified email or not
-            if (!userDetails.isVerifiedEmail) {
-                throw new Error("Email is not verified. Please check your email!");
-            }
+            // if (!userDetails.isVerifiedEmail) {
+            //     throw new Error("Email is not verified. Please check your email!");
+            // }
 
             // Exclude the password field from the response
             const { id, name, email } = userDetails;

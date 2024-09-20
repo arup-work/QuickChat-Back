@@ -2,6 +2,7 @@ import express from 'express';
 import http from "http";
 import mongoose from 'mongoose';
 import 'dotenv/config';
+import cors from 'cors';
 
 
 import Route from './routes/index.js';
@@ -12,8 +13,8 @@ import sendEmail from './services/email.service.js';
 const app = express();
 const server = http.createServer(app);
 
-// Middleware to parse JSON bodies
-app.use(express.json());
+app.use(cors());  // Enable CORS for all routes
+app.use(express.json()); // Middleware to parse JSON bodies
 
 // All routes
 app.use('/api/v1',Route)
