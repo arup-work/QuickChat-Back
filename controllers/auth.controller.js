@@ -26,9 +26,12 @@ export default class AuthController {
         try {
             const { email, password } = req.body;
             const result = await AuthService.login(email, password);
+            const { id, name, token } = result;
+
             return res.status(200).json({
                 message: "Login successful",
-                user: result,
+                user: { email, id, name },
+                token: token,
                 status: 200
             })
 
@@ -49,7 +52,7 @@ export default class AuthController {
                     status: 404
                 });
             }
-            
+
             const user = await AuthService.verifyEmail(token);
             return res.status(200).json({
                 message: 'Email verified successfully',
