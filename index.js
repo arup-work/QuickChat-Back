@@ -10,6 +10,7 @@ import errorHandler from './errorHandler.js';
 import emailQueue from './utils/emailQueue.js';
 import sendEmail from './services/email.service.js';
 import { Server } from 'socket.io';
+import Message from './models/Message.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -20,7 +21,7 @@ app.use(express.json()); // Middleware to parse JSON bodies
 // io
 const io = new Server(server, {
     cors: {
-        origin: "http://localhost:3000",
+        origin: [process.env.FRONTEND_URL, "http://localhost:3000"],
         methods: ["GET", "POST"]
     }
 })
@@ -28,18 +29,24 @@ const io = new Server(server, {
 // Listen for connection from clients
 io.on('connection', (socket) => {
     console.log('New Client connected: ', socket.id);
-    
-    // Send a message from the server to the client
-    socket.emit('message', 'Welcome to the socket.io server');
 
-    // Listen for events from the client
-    socket.on('messageFromClient', (message) => {
-        console.log('Message from client:', message);
-
-        // You can broadcast this to other clients if needed
-        io.emit('message', `Client says: ${message}`);
-        
+    // Join a specific chat room 
+    socket.on('joinRoom', ({ sender, recipient }) => {
+        const room = [sender, recipient].sort().join('-');
+        socket.join(room);
+        console.log(`User ${sender} joined room ${room}`);
     })
+
+    //Listen for new messages
+    socket.on('message',({ sender, recipient, message}) => {
+        const room = [sender, recipient].sort().join('-');
+        const newMessage = new Message({ sender, recipient, message});
+
+        // Save the message to the database
+        newMessage.save().then(() => {
+            io.to(room).emit('message', newMessage);
+        })
+    })      
 
     // Handle client disconnect
     socket.on('disconnect', () => {
