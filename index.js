@@ -40,7 +40,7 @@ io.on('connection', (socket) => {
     //Listen for new messages
     socket.on('message',({ sender, recipient, message}) => {
         const room = [sender, recipient].sort().join('-');
-        const newMessage = new Message({ sender, recipient, message});
+        const newMessage = new Message({ senderId: sender, recipientId : recipient, content: message});
 
         // Save the message to the database
         newMessage.save().then(() => {
