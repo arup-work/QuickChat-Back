@@ -11,5 +11,12 @@ userRoute.get(
     UserController.getAllUsers
 );
 
+// Fetch last seen
+userRoute.get(
+    '/last-seen/:userId',
+    [authMiddleware],
+    UserController.getLastSeen
+)
+
 
 export default userRoute;

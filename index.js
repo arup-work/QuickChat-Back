@@ -11,6 +11,7 @@ import emailQueue from './utils/emailQueue.js';
 import sendEmail from './services/email.service.js';
 import { Server } from 'socket.io';
 import Message from './models/Message.js';
+import User from './models/User.js';
 
 const app = express();
 const server = http.createServer(app);
@@ -26,9 +27,24 @@ const io = new Server(server, {
     }
 })
 
+// Middleware to check for userId
+io.use((socket, next) => {
+    const userId = socket.handshake.query.userId;
+    if (userId) {
+        socket.userId = userId;
+        next();
+    } else {
+        next(new Error('User ID required'));
+    }
+});
+
 // Listen for connection from clients
 io.on('connection', (socket) => {
-    console.log('New Client connected: ', socket.id);
+    const userId = socket.userId;
+    console.log('New Client connected: ', userId);
+
+    // Emit online status to other users
+    io.emit('userStatusUpdate', { userId, status: 'online' });
 
     // Join a specific chat room 
     socket.on('joinRoom', ({ sender, recipient }) => {
@@ -38,19 +54,22 @@ io.on('connection', (socket) => {
     })
 
     //Listen for new messages
-    socket.on('message',({ sender, recipient, message}) => {
+    socket.on('message', ({ sender, recipient, message }) => {
         const room = [sender, recipient].sort().join('-');
-        const newMessage = new Message({ senderId: sender, recipientId : recipient, content: message});
+        const newMessage = new Message({ senderId: sender, recipientId: recipient, content: message });
 
         // Save the message to the database
         newMessage.save().then(() => {
             io.to(room).emit('message', newMessage);
         })
-    })      
+    })
 
-    // Handle client disconnect
-    socket.on('disconnect', () => {
-        console.log('Client disconnected', socket.id);
+    // On disconnect, update the last seen timestamp in the database
+    socket.on('disconnect', async() => {
+        const lastSeen = new Date();
+        await User.findByIdAndUpdate(userId, {lastSeen});
+        io.emit('userStatusUpdate', { userId, status: 'offline', lastSeen })
+        console.log(`${userId} disconnected`);
     })
 })
 

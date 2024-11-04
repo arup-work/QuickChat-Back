@@ -5,4 +5,9 @@ export default class UserService{
         const users = await User.find().select('-password -createdAt -updatedAt -verificationToken -__v -verificationTokenExpire -isVerifiedEmail');
         return users;
     }
+
+    static async getLastSeen(userId){
+        const lastSeen = await User.findById(userId).select('-password -createdAt -updatedAt -verificationToken -__v -verificationTokenExpire -isVerifiedEmail');
+        return lastSeen;
+    }
 }

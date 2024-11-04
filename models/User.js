@@ -25,6 +25,10 @@ const UserSchema = new mongoose.Schema({
     verificationTokenExpire: {
         type: Date
     },
+    lastSeen: {
+        type: Date,
+        default: null
+    }
 }, { timestamps: true })
 
 // Create a model
