@@ -38,13 +38,28 @@ io.use((socket, next) => {
     }
 });
 
+const onlineUsers = new Set(); //Track online users
+
 // Listen for connection from clients
 io.on('connection', (socket) => {
     const userId = socket.userId;
     console.log('New Client connected: ', userId);
 
-    // Emit online status to other users
-    io.emit('userStatusUpdate', { userId, status: 'online' });
+    // Add user to online users set
+    onlineUsers.add(userId);
+
+    // Emit updated online users and their statuses
+    const emitUserStatuses = async () => {
+        const allUsers = await User.find({}, "_id lastSeen"); // Fetch all users with their last seen
+        const userStatuses = allUsers.map((user) => ({
+            userId: user._id,
+            status: onlineUsers.has(user._id.toString()) ? 'online' : 'offline',
+            lastSeen: onlineUsers.has(user._id.toString()) ?  null : user.lastSeen
+        }));
+        io.emit('userStatusesUpdate', userStatuses); 
+    }
+
+    emitUserStatuses();
 
     // Join a specific chat room 
     socket.on('joinRoom', ({ sender, recipient }) => {
@@ -65,11 +80,13 @@ io.on('connection', (socket) => {
     })
 
     // On disconnect, update the last seen timestamp in the database
-    socket.on('disconnect', async() => {
+    socket.on('disconnect', async () => {
+        onlineUsers.delete(userId); //Remove user from online users
         const lastSeen = new Date();
-        await User.findByIdAndUpdate(userId, {lastSeen});
-        io.emit('userStatusUpdate', { userId, status: 'offline', lastSeen })
+        await User.findByIdAndUpdate(userId, { lastSeen });
+        
         console.log(`${userId} disconnected`);
+        emitUserStatuses(); // Update all clients after disconnect
     })
 })
 
