@@ -19,4 +19,17 @@ export default class MessageController{
             })
         }
     }
+
+    static async getAllUsersLastMessages(req, res) {
+        try {
+            console.log("Sender ID from request:", req.user.id);
+            const senderId = req.user.id;
+            const messages = await MessageService.getAllUsersLastMessages(senderId);
+            res.status(200).json(messages);
+        } catch (error) {
+            console.error("Error in getAllUsersLastMessages:", error);
+            res.status(500).json({ message: "Failed to retrieve last messages" });
+        }
+    }
+    
 }

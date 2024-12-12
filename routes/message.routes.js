@@ -11,4 +11,11 @@ messageRoute.get(
     MessageController.getMessagesBetweenUsers
 )
 
+// Get all users' last messages
+messageRoute.get(
+    '/last-messages',
+    [authMiddleware],
+    MessageController.getAllUsersLastMessages
+)
+
 export default messageRoute;
