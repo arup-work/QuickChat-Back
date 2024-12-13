@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Message from "../models/Message.js";
 
 export default class MessageService {
@@ -12,59 +13,63 @@ export default class MessageService {
     }
 
     static async getAllUsersLastMessages(senderId) {
+         // Convert senderId to ObjectId
+         if (!mongoose.Types.ObjectId.isValid(senderId)) {
+            throw new Error("Invalid senderId");
+        }
+        const senderObjectId = mongoose.Types.ObjectId.createFromHexString(senderId);
+        
         try {
-            // Query to get the latest message for each other
-            // Convert senderId to ObjectId if it's a valid string
-            const senderObjectId = mongoose.Types.ObjectId.isValid(senderId)
-                ? mongoose.Types.ObjectId(senderId)
-                : null;
-
-            if (!senderObjectId) {
-                throw new Error("Invalid senderId");
-            }
-            const message = await Message.aggregate([
+            const messages = await Message.aggregate([
+                // Match messages involving the senderId
                 {
                     $match: {
                         $or: [
-                            { senderId: senderId },
-                            { recipientId: senderId }
+                            { senderId: senderObjectId },
+                            { recipientId: senderObjectId }
                         ]
                     }
                 },
+                // Sort messages by creation date (latest messages first)
                 {
-                    $sort: { createdAt: -1 }  //sort by creation date (latest first)
+                    $sort: { createdAt: -1 }
                 },
+                // Group by conversation partner
                 {
                     $group: {
                         _id: {
                             conversationUser: {
                                 $cond: [
                                     { $eq: ["$senderId", senderId] },
-                                    "$recipientId",
-                                    "$senderId"
+                                    "$recipientId", // If senderId matches, group by recipientId
+                                    "$senderId"     // Otherwise, group by senderId
                                 ]
                             }
                         },
-                        lastMessage: { $first: "$content" },
-                        createdAt: { $first: "$createdAt" },
-                    }
-                }, {
-                    $project: {
-                        _id: 0,
-                        userId: "$_id.conversationUser",
-                        lastMessage: 1,
-                        createdAt: 1,
+                        lastMessage: { $first: "$content" }, // Take the latest message content
+                        createdAt: { $first: "$createdAt" } // Take the timestamp of the latest message
                     }
                 },
+                // Project the desired output fields
                 {
-                    $sort: { createdAt: -1 } // Optional: Sort the final output by message date
+                    $project: {
+                        _id: 0,
+                        userId: "$_id.conversationUser", // Rename _id.conversationUser to userId
+                        lastMessage: 1,
+                        createdAt: 1
+                    }
+                },
+                // Optional: Sort the final output by message date
+                {
+                    $sort: { createdAt: -1 }
                 }
             ]);
-            return message;
-
+    
+            return messages;
         } catch (error) {
             console.error("Error fetching last messages:", error);
             throw new Error("Could not fetch last messages");
         }
     }
+    
 }

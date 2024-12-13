@@ -6,7 +6,7 @@ const messageRoute = express.Router();
 
 // Get all messages between the current user and another user by user ID
 messageRoute.get(
-    '/:receiverId',
+    '/user/:receiverId',
     [authMiddleware],
     MessageController.getMessagesBetweenUsers
 )
