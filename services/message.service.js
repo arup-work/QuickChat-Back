@@ -13,12 +13,13 @@ export default class MessageService {
     }
 
     static async getAllUsersLastMessages(senderId) {
-         // Convert senderId to ObjectId
-         if (!mongoose.Types.ObjectId.isValid(senderId)) {
+        if (!mongoose.Types.ObjectId.isValid(senderId)) {
+            console.error("Invalid senderId:", senderId);
             throw new Error("Invalid senderId");
         }
+    
         const senderObjectId = mongoose.Types.ObjectId.createFromHexString(senderId);
-        
+    
         try {
             const messages = await Message.aggregate([
                 // Match messages involving the senderId
@@ -30,46 +31,63 @@ export default class MessageService {
                         ]
                     }
                 },
-                // Sort messages by creation date (latest messages first)
+                // Add a conversationId for grouping conversations
+                {
+                    $addFields: {
+                        conversationId: {
+                            $cond: [
+                                { $lt: ["$senderId", "$recipientId"] },
+                                { $concat: [
+                                    { $toString: "$senderId" }, "_", { $toString: "$recipientId" }
+                                  ] },
+                                { $concat: [
+                                    { $toString: "$recipientId" }, "_", { $toString: "$senderId" }
+                                  ] }
+                            ]
+                        }
+                    }
+                },
+                // Sort by creation date (latest messages first)
                 {
                     $sort: { createdAt: -1 }
                 },
-                // Group by conversation partner
+                // Group by conversationId and take the latest message
                 {
                     $group: {
-                        _id: {
-                            conversationUser: {
-                                $cond: [
-                                    { $eq: ["$senderId", senderId] },
-                                    "$recipientId", // If senderId matches, group by recipientId
-                                    "$senderId"     // Otherwise, group by senderId
-                                ]
-                            }
-                        },
-                        lastMessage: { $first: "$content" }, // Take the latest message content
-                        createdAt: { $first: "$createdAt" } // Take the timestamp of the latest message
+                        _id: "$conversationId",
+                        lastMessage: { $first: "$content" }, // Latest message content
+                        createdAt: { $first: "$createdAt" }, // Latest message timestamp
+                        senderId: { $first: "$senderId" }, // Sender in the conversation
+                        recipientId: { $first: "$recipientId" } // Recipient in the conversation
                     }
                 },
-                // Project the desired output fields
+                // Project the desired fields for output
                 {
                     $project: {
                         _id: 0,
-                        userId: "$_id.conversationUser", // Rename _id.conversationUser to userId
+                        conversationId: "$_id", // Rename _id to conversationId
                         lastMessage: 1,
-                        createdAt: 1
+                        createdAt: 1,
+                        users: ["$senderId", "$recipientId"] // Format users array
                     }
                 },
-                // Optional: Sort the final output by message date
+                // Optional: Sort the final output by creation date
                 {
                     $sort: { createdAt: -1 }
                 }
             ]);
     
+            console.log("Fetched Messages:", messages);
             return messages;
+    
         } catch (error) {
             console.error("Error fetching last messages:", error);
             throw new Error("Could not fetch last messages");
         }
     }
+    
+    
+    
+    
     
 }
