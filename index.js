@@ -43,7 +43,7 @@ const onlineUsers = new Set(); //Track online users
 // Listen for connection from clients
 io.on('connection', (socket) => {
     const userId = socket.userId;
-    console.log('New Client connected: ', userId);
+    // console.log('New Client connected: ', userId);
 
     // Add user to online users set
     onlineUsers.add(userId);
@@ -77,6 +77,20 @@ io.on('connection', (socket) => {
         newMessage.save().then(() => {
             io.to(room).emit('message', newMessage);
         })
+    })
+
+    // Listen for typing event
+    socket.on('typing', ({ sender, recipient }) => {
+        const room = [sender, recipient].sort().join('-');
+        console.log(`${sender} is typing in room ${room}`);
+        socket.to(room).emit("userTyping", { sender });  // Notify all users in the room
+    })
+
+    // Listen for stopTyping event
+    socket.on('stopTyping', ({ sender, recipient }) => {
+        const room = [sender, recipient].sort().join('-');
+        console.log(`${sender} stopTyping in room ${room}`);
+        socket.to(room).emit("userStoppedTyping", { sender });  // Notify all users in the room
     })
 
     // On disconnect, update the last seen timestamp in the database
