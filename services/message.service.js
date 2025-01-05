@@ -76,8 +76,6 @@ export default class MessageService {
                     $sort: { createdAt: -1 }
                 }
             ]);
-    
-            console.log("Fetched Messages:", messages);
             return messages;
     
         } catch (error) {
