@@ -26,11 +26,11 @@ export default class AuthController {
         try {
             const { email, password } = req.body;
             const result = await AuthService.login(email, password);
-            const { id, name, token } = result;
+            const { id, name, token, file_path } = result;
 
             return res.status(200).json({
                 message: "Login successful",
-                user: { email, id, name },
+                user: { email, id, name, file_path },
                 token: token,
                 status: 200
             })

@@ -31,7 +31,7 @@ export default class AuthService {
             user.verificationToken = crypto.createHash('sha256').update(verificationToken).digest('hex');
             user.verificationTokenExpire = Date.now() + 3600000; // 1 hour
             await user.save();
-            
+
             // Send verification mail
             const verificationUrl = `${process.env.FRONTEND_URL}/verify-email/${verificationToken}`;
 
@@ -71,7 +71,7 @@ export default class AuthService {
             // }
 
             // Exclude the password field from the response
-            const { id, name, email } = userDetails;
+            const { id, name, email, file_path } = userDetails;
 
             // Sign a JWT token
             const token = JWT.sign({
@@ -79,7 +79,22 @@ export default class AuthService {
                 id
             }, process.env.ACCESS_TOKEN_SECRET_KEY);
 
-            return { id, name, email, token };
+            // Prepare the response object, including file_path if it exists
+            const response = {
+                id,
+                name,
+                email,
+                token
+            };
+
+            if (file_path) {
+                response.file_path = file_path;
+            }else{
+                response.file_path = '';
+            }
+
+            return response;
+
         } catch (error) {
             throw new Error(error.message);
         }
@@ -94,7 +109,7 @@ export default class AuthService {
                 verificationTokenExpire: { $gt: Date.now() }
             });
             console.log(token);
-            
+
 
             if (!user) {
                 throw new Error("Token is invalid or expired!");
