@@ -12,12 +12,21 @@ import sendEmail from './services/email.service.js';
 import { Server } from 'socket.io';
 import Message from './models/Message.js';
 import User from './models/User.js';
+import path, { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 const app = express();
 const server = http.createServer(app);
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 app.use(cors());  // Enable CORS for all routes
 app.use(express.json()); // Middleware to parse JSON bodies
+
+// Serve static files from the 'public' directory
+app.use('/uploads',express.static(path.join(__dirname, 'public')));
+
 
 // io
 const io = new Server(server, {

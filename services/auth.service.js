@@ -71,7 +71,7 @@ export default class AuthService {
             // }
 
             // Exclude the password field from the response
-            const { id, name, email, file_path } = userDetails;
+            const { id, name, email, profileImage } = userDetails;
 
             // Sign a JWT token
             const token = JWT.sign({
@@ -79,20 +79,21 @@ export default class AuthService {
                 id
             }, process.env.ACCESS_TOKEN_SECRET_KEY);
 
-            // Prepare the response object, including file_path if it exists
+            // Prepare the response object, including profileImage if it exists
             const response = {
                 id,
                 name,
                 email,
                 token
             };
+            
 
-            if (file_path) {
-                response.file_path = file_path;
+            if (profileImage) {
+                response.profileImage = `${process.env.BASE_URL}/uploads/${profileImage}`;
             }else{
-                response.file_path = '';
+                response.profileImage = '';
             }
-
+            
             return response;
 
         } catch (error) {

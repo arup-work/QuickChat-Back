@@ -28,7 +28,11 @@ const UserSchema = new mongoose.Schema({
     lastSeen: {
         type: Date,
         default: null
-    }
+    },
+    profileImage: {
+        type: String,
+        required: true
+    },
 }, { timestamps: true })
 
 // Create a model
