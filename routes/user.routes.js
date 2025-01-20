@@ -32,6 +32,12 @@ userRoute.post(
     [authMiddleware],
     ProfileController.updateProfileImage
 )
+// Delete profile image
+userRoute.delete(
+    '/remove-profile-image/:userId',
+    [authMiddleware],
+    ProfileController.removeProfileImage
+)
 
 
 

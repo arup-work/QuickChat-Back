@@ -58,4 +58,32 @@ export default class ProfileService {
             return res.json({ status: 500, message: error.message });
         }
     }
+
+    static async removeProfileImage(userId){
+        try {
+            if (!mongoose.Types.ObjectId.isValid(userId)) {
+                throw new Error('Invalid user ID format');
+            }
+            const user = await User.findById(userId);
+
+            if (!user) {
+                throw new Error('User not found');
+            }
+
+            // Delete the old profile image if it exists
+            if (user.profileImage) {
+                const oldImagePath = path.join('public', user.profileImage);
+                deleteFile(oldImagePath);
+            }
+
+            // Update profile image
+            user.profileImage = null;
+            user.save();
+
+            return user;
+            
+        } catch (error) {
+            return error;
+        }
+    }
 }
