@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import User from "../models/User.js";
-import upload from "../config/multerConfig.js";
+import upload from "../config/multer.js";
 import path from "path";
 import deleteFile from "../utils/helpers/deleteFile.js";
 

@@ -31,9 +31,8 @@ export default class ProfileController {
                 return res.status(400).json({ message: 'Missing userId' });
             }
             const response = await ProfileService.updateProfileImage(req, res);
-            const {  email, profileImage } = response;
             return res.status(200).json({
-                user: {email, profileImage},
+                response,
                 status: 200
             })
         } catch (error) {
@@ -52,6 +51,8 @@ export default class ProfileController {
                 return res.status(400).json({ message: 'Missing userId' });
             }
             const response = await ProfileService.removeProfileImage(userId);
+            console.log(response);
+            
             const {  email, profileImage } = response;
             return res.status(200).json({
                 user: {email, profileImage},
